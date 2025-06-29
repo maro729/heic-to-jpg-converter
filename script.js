@@ -6,10 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsDiv = document.getElementById('results');
     const downloadLinksDiv = document.getElementById('download-links');
     const emailLink = document.getElementById('email-link');
+    const qualitySlider = document.getElementById('quality-slider');
+    const qualityValue = document.getElementById('quality-value');
+
+    // Update quality display value when slider changes
+    qualitySlider.addEventListener('input', () => {
+        qualityValue.textContent = qualitySlider.value;
+    });
 
     convertBtn.addEventListener('click', async () => {
         const files = fileInput.files;
         const email = emailInput.value;
+        const quality = parseInt(qualitySlider.value, 10) / 100;
 
         if (files.length === 0) {
             alert('Please select at least one HEIC file.');
@@ -32,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-
-                // 1. Read metadata to find the creation date (only from the first image)
+                
+                // 1. Read metadata (only from the first image)
                 if (i === 0) {
                     try {
                         const fileBuffer = await file.arrayBuffer();
@@ -49,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const conversionResult = await heic2any({
                     blob: file,
                     toType: 'image/jpeg',
-                    quality: 0.9,
+                    quality: quality, // Use value from slider
                 });
 
                 // 3. Create download link
@@ -64,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // 4. Create mailto link
             let subject = 'Converted JPG Images';
             if (dateTimeOriginal) {
-                // Format YYYY-MM-DD from 'YYYY:MM:DD HH:MM:SS'
                 const datePart = dateTimeOriginal.split(' ')[0].replace(/:/g, '-');
                 subject = `Photos from ${datePart}`;
             }
@@ -76,7 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('An error occurred during conversion:', error);
-            alert('An error occurred during conversion. Please check the console for details.');
+            let errorMessage = 'An error occurred during conversion. This can happen on mobile devices with large images due to memory limits.\n\nTry reducing the JPG quality or converting fewer images at once.';
+            if (error.message) {
+                errorMessage += `\n\nError details: ${error.message}`;
+            }
+            alert(errorMessage);
         } finally {
             // Re-enable UI
             loadingDiv.classList.add('hidden');

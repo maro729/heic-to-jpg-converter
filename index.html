@@ -21,7 +21,12 @@
             <input type="email" id="email-input" placeholder="recipient@example.com">
         </div>
 
-        <button id="convert-btn">3. Convert & Prepare Email</button>
+        <div class="form-group">
+            <label for="quality-slider">3. JPG Quality: <span id="quality-value">90</span>%</label>
+            <input type="range" id="quality-slider" min="10" max="100" value="90" step="5">
+        </div>
+
+        <button id="convert-btn">4. Convert & Prepare Email</button>
 
         <div id="loading" class="hidden">
             <div class="spinner"></div>
