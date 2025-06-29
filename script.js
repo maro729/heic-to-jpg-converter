@@ -56,8 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 let processedBlob = file; // Default to original file
                 let downloadFileName = file.name;
 
-                // Check if the file is HEIC/HEIF based on type or extension
-                const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+                // Determine file type based on MIME type and extension
+                const fileType = file.type.toLowerCase();
+                const fileNameLower = file.name.toLowerCase();
+                const isHeic = fileType === 'image/heic' || fileType === 'image/heif' || fileNameLower.endsWith('.heic') || fileNameLower.endsWith('.heif');
+                const isJpeg = fileType === 'image/jpeg' || fileType === 'image/jpg' || fileNameLower.endsWith('.jpeg') || fileNameLower.endsWith('.jpg');
 
                 if (isHeic) {
                     // It's HEIC, convert it
@@ -68,13 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             quality: quality,
                         });
                         processedBlob = conversionResult;
-                        downloadFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+                        downloadFileName = fileNameLower.replace(/\.(heic|heif)$/i, '.jpg');
                     } catch (conversionError) {
                         console.error(`Error converting HEIC file ${file.name}:`, conversionError);
                         alert(`Failed to convert ${file.name}. It might be corrupted or an unsupported HEIC format.`);
                         continue; // Skip to the next file if conversion fails
                     }
-                } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                } else if (isJpeg) {
                     // It's already JPG, no conversion needed
                     downloadFileName = file.name; // Keep original name
                 } else {
