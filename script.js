@@ -53,19 +53,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // 2. Convert HEIC to JPG
-                const conversionResult = await heic2any({
-                    blob: file,
-                    toType: 'image/jpeg',
-                    quality: quality, // Use value from slider
-                });
+                let processedBlob = file; // Default to original file
+                let downloadFileName = file.name;
+
+                // Check if the file is HEIC/HEIF based on type or extension
+                const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+                if (isHeic) {
+                    // It's HEIC, convert it
+                    try {
+                        const conversionResult = await heic2any({
+                            blob: file,
+                            toType: 'image/jpeg',
+                            quality: quality,
+                        });
+                        processedBlob = conversionResult;
+                        downloadFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+                    } catch (conversionError) {
+                        console.error(`Error converting HEIC file ${file.name}:`, conversionError);
+                        alert(`Failed to convert ${file.name}. It might be corrupted or an unsupported HEIC format.`);
+                        continue; // Skip to the next file if conversion fails
+                    }
+                } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                    // It's already JPG, no conversion needed
+                    downloadFileName = file.name; // Keep original name
+                } else {
+                    // Handle other types or warn the user
+                    console.warn(`Skipping unsupported file type: ${file.name} (${file.type})`);
+                    alert(`Skipping unsupported file type: ${file.name}. Only HEIC/HEIF and JPG/JPEG are supported.`);
+                    continue; // Skip to the next file
+                }
 
                 // 3. Create download link
-                const url = URL.createObjectURL(conversionResult);
+                const url = URL.createObjectURL(processedBlob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = file.name.replace(/\.heic$/i, '.jpg');
-                link.textContent = `Download ${link.download}`;
+                link.download = downloadFileName;
+                link.textContent = `Download ${downloadFileName}`;
                 downloadLinksDiv.appendChild(link);
             }
 
